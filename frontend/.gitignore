@@ -1,0 +1,25 @@
+# React
+node_modules/
+build/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.env
+
+# Generated data
+saved_data.csv
+*.csv
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
