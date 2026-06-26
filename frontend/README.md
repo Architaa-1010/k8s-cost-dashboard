@@ -1,122 +1,271 @@
-# K8s Cost Dashboard
+# Kubernetes Cost Analytics & Forecasting Dashboard
 
-A full-stack Kubernetes cost analytics platform built using React, FastAPI, Pandas, Prophet, SARIMA, and MongoDB.
+A full-stack web application for analyzing Kubernetes cost allocation data, visualizing spending trends, forecasting future costs, and monitoring budget usage.
+
+Built during my software engineering internship to explore cost optimization techniques using Kubecost-style allocation data.
+
+---
+
+## Overview
+
+This project provides an interactive dashboard for Kubernetes cost analysis. It supports multiple data sources, performs real-time analytics, visualizes historical cost trends, generates forecasts, and allows users to monitor namespace budgets across clusters.
+
+The application was designed to handle both uploaded datasets and large MongoDB collections while maintaining responsive performance through backend optimizations.
+
+---
 
 ## Features
 
-### Data Ingestion
+### Dashboard Overview
 
-* Upload JSON files
-* Connect MongoDB collections
-* Connect external REST APIs
-* Automatic field detection
-* Dynamic field mapping for non-standard schemas
+- Cluster-wide cost summary
+- Total infrastructure cost
+- Daily average cost
+- Active namespaces
+- Cost trend visualization
+- Top cost-consuming namespaces
 
-### Cost Analytics
+### Namespace Analytics
 
-* Cluster Overview
-* Namespace Deep Dive
-* Cost Breakdown Visualization
-* Resource Efficiency Analysis
-* Right-Sizing Recommendations
+- Historical CPU, RAM, Storage and Total Cost
+- Resource utilization metrics
+- Pod count tracking
+- Cost breakdown by namespace
 
 ### Forecasting
 
-* Linear Trend Forecasting
-* SARIMA Forecasting
-* Prophet Forecasting
+Supports multiple forecasting models:
 
-### Budget Monitoring
+- SARIMA
+- Facebook Prophet
 
-* Budget Alert System
-* Forecast vs Budget Comparison
-* Overspend Detection
+Forecasts include:
 
-### Model Evaluation
+- 30-day prediction
+- Weekly breakdown
+- Historical vs forecast comparison
+- Cost and Pod Count forecasting
 
-* Forecast Backtesting
-* MAPE
-* MAE
-* RMSE
-* Accuracy Metrics
+### Forecast Backtesting
 
-## Technology Stack
+Evaluate forecasting performance using:
+
+- MAPE
+- RMSE
+- MAE
+- Forecast Accuracy
+
+Supports backtesting for both:
+
+- Cost
+- Pod Count
+
+### Budget Alerts
+
+- Monthly cost prediction
+- Editable namespace budgets
+- Automatic budget status detection
+
+Status indicators:
+
+- On Track
+- At Risk
+- Over Budget
+
+### Multi-Cluster Support
+
+- Connect to MongoDB datasets containing multiple Kubernetes clusters
+- Switch clusters without reconnecting
+- Cluster-specific analytics and forecasting
+
+---
+
+## Data Sources
+
+The application supports:
+
+### MongoDB
+
+Connect directly to a MongoDB database containing Kubecost allocation data.
+
+### CSV Upload
+
+Upload allocation datasets directly into the dashboard.
+
+### REST API (Architecture Ready)
+
+The application architecture supports consuming Kubernetes allocation data through REST APIs, allowing integration with external services instead of direct database access.
+
+---
+
+## Technologies Used
 
 ### Frontend
 
-* React
-* React Router
-* Recharts
+- React
+- Recharts
+- JavaScript
+- CSS
 
 ### Backend
 
-* FastAPI
-* Pandas
-* NumPy
-* Prophet
-* Statsmodels
-* PyMongo
+- FastAPI
+- Python
+- Pandas
+- NumPy
+- PyMongo
+
+### Machine Learning / Forecasting
+
+- Statsmodels (SARIMA)
+- Prophet
+
+### Database
+
+- MongoDB
+
+---
 
 ## Project Structure
 
-backend/
-
-* main.py
-* database.py
-* requirements.txt
-
-frontend/
-
-* src/
-* public/
-* package.json
-
-## Running the Backend
-
-```bash
-pip install -r requirements.txt
-uvicorn main:app --reload
+```
+project/
+│
+├── backend/
+│   ├── main.py
+│   ├── data_api.py
+│   ├── forecasting.py
+│   └── requirements.txt
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   └── App.js
+│   └── package.json
+│
+└── README.md
 ```
 
-## Running the Frontend
+---
 
-```bash
-npm install
-npm start
+## Sample Dataset
+
+The application works with Kubecost-style allocation data containing fields such as:
+
+- Namespace
+- Cluster
+- Date
+- CPU Cost
+- Memory Cost
+- Persistent Volume Cost
+- Pod Count
+- Total Cost
+- CPU Efficiency
+- RAM Efficiency
+
+Large synthetic datasets (50k–200k+ records) were generated to evaluate application performance and scalability.
+
+---
+
+## Performance Optimizations
+
+During development several optimizations were implemented to improve responsiveness with large datasets.
+
+Examples include:
+
+- MongoDB indexing
+- Cluster-based filtering
+- Forecast result caching
+- Reduced database queries
+- Optimized aggregation pipelines
+- Faster namespace loading
+- Improved rendering performance for large datasets
+
+---
+
+## Forecasting Workflow
+
+```
+Historical Cost Data
+          │
+          ▼
+Forecast Model
+(SARIMA / Prophet)
+          │
+          ▼
+30-Day Forecast
+          │
+          ▼
+Budget Analysis
+          │
+          ▼
+Alerts & Dashboard
 ```
 
-## Supported Input Sources
+---
 
-### Standard Schema
+## Screenshots
 
-```json
-{
-  "name": "frontend",
-  "date": "2025-01-01",
-  "cpuCost": 10,
-  "ramCost": 5,
-  "pvCost": 2,
-  "podCount": 4,
-  "totalCost": 17,
-  "cpuEfficiency": 0.8,
-  "ramEfficiency": 0.75
-}
-```
+<h2>Dashboard Overview</h2>
 
-### Custom Schemas
+<img src="screenshots/Dashboard.png" width="900">
 
-The dashboard supports custom field names through dynamic field mapping.
+<h2>Namespace Deep Dive</h2>
 
-Example:
+<img src="screenshots/NamespaceDive.png" width="900">
 
-```json
-{
-  "namespace_name": "frontend",
-  "usage_date": "2025-01-01",
-  "cpu_cost_usd": 10
-}
-```
+<h2>Forecast</h2>
+
+<img src="screenshots/Forecast.png" width="900">
+
+<h2>Backtesting</h2>
+
+<img src="screenshots/Backtest.png" width="900">
+
+<h2>Budget Alerts</h2>
+
+<img src="screenshots/BudgetAlerts.png" width="900">
+
+---
+
+## Future Improvements
+
+- Authentication
+- Role-based access control
+- Scheduled forecast generation
+- REST API integration with live Kubernetes environments
+- Docker deployment
+- Kubernetes deployment
+- Email budget notifications
+- Additional forecasting models (LSTM, XGBoost)
+
+---
+
+## Learning Outcomes
+
+This project provided hands-on experience with:
+
+- Full-stack application development
+- FastAPI REST API development
+- React dashboard design
+- MongoDB integration
+- Time series forecasting
+- Kubernetes cost analytics
+- Performance optimization
+- Data visualization
+- Backend architecture
+
+---
 
 ## Author
 
-Architaa A
+**Architaa A**
+
+Artificial Intelligence Intern
+
+GitHub: *(https://github.com/Architaa-1010)*
+
+LinkedIn: *www.linkedin.com/in/architaa-a-34936831b*
+
+---
