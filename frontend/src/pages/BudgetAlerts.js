@@ -15,21 +15,23 @@ function BudgetAlerts({ namespaces }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/budget-forecasts')
-      .then(res => res.json())
-      .then(d => {
-        if (d.forecasts) {
-          setForecasts(d.forecasts);
-          // Set default budgets as 90% of forecast
-          const defaultBudgets = {};
-          Object.entries(d.forecasts).forEach(([ns, cost]) => {
-            defaultBudgets[ns] = round(cost * 1.10);
-          });
-          setBudgets(defaultBudgets);
-        }
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    Promise.all([
+      fetch('http://127.0.0.1:8000/budget-forecasts').then(r => r.json()),
+      fetch('http://127.0.0.1:8000/budgets').then(r => r.json())
+    ]).then(([forecastData, budgetData]) => {
+      if (forecastData.forecasts) {
+        setForecasts(forecastData.forecasts);
+        
+        // Use saved budgets if they exist, otherwise default to 90% of forecast
+        const savedBudgets = budgetData.budgets || {};
+        const defaultBudgets = {};
+        Object.entries(forecastData.forecasts).forEach(([ns, cost]) => {
+          defaultBudgets[ns] = savedBudgets[ns] ?? round(cost * 0.9);
+        });
+        setBudgets(defaultBudgets);
+      }
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, []);
 
   function round(v) { return Math.round(v * 100) / 100; }
@@ -42,14 +44,22 @@ function BudgetAlerts({ namespaces }) {
   function commitEdit(ns) {
     const val = parseFloat(tempValue);
     if (!isNaN(val) && val > 0) {
-      setBudgets(prev => ({ ...prev, [ns]: val }));
+      const newBudgets = { ...budgets, [ns]: val };
+      setBudgets(newBudgets);
+      
+      // Save to backend
+      fetch('http://127.0.0.1:8000/budgets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ budgets: newBudgets })
+      });
     }
     setEditing(null);
   }
 
   if (loading) return (
     <div style={{ padding: '32px', color: '#64748b' }}>
-      Running SARIMA forecasts for all namespaces — this may take a minute...
+      Running Linear Trend forecasts for all namespaces — this may take a minute...
     </div>
   );
 
@@ -71,7 +81,7 @@ function BudgetAlerts({ namespaces }) {
         Budget Alerts
       </h1>
       <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '24px' }}>
-        Forecasts powered by SARIMA. Default budgets set to 90% of forecast — click any budget to edit.
+        Forecasts powered by Linear Trend. Default budgets set to 90% of forecast — click any budget to edit.
       </p>
 
       {/* Summary Cards */}
@@ -147,7 +157,7 @@ function BudgetAlerts({ namespaces }) {
                   onKeyDown={e => e.key === 'Enter' && commitEdit(ns)}
                   style={{
                     width: '80px', padding: '4px 8px',
-                    backgroundColor: '#0f172a',
+                    backgroundColor: '#f8fafc',
                     border: '1px solid #e11d48',
                     borderRadius: '6px', color: '#0f172a',
                     fontSize: '14px', outline: 'none'

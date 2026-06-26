@@ -27,6 +27,13 @@ function NamespaceDive({ namespaces }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (namespaces && namespaces.length > 0) {
+      setSelected(namespaces[0]);
+      setData(null);
+    }
+  }, [namespaces]);
+
+  useEffect(() => {
     if (!selected) return;
     setLoading(true);
     fetch(`http://127.0.0.1:8000/namespace/${selected}`)

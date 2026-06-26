@@ -38,9 +38,18 @@ function MetricCard({ label, value, sub, color }) {
 function Backtest({ namespaces = [] }) {
   const [namespace, setNamespace] = useState('');
   const [model, setModel] = useState('sarima');
+  const [metric, setMetric] = useState('cost');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [selected, setSelected] = useState(namespaces?.[0] || '');
+
+  useEffect(() => {
+    if (namespaces && namespaces.length > 0) {
+      setSelected(namespaces[0]);
+      setData(null);
+    }
+  }, [namespaces]);
 
   // Set first namespace once namespaces loads
   useEffect(() => {
@@ -55,7 +64,7 @@ function Backtest({ namespaces = [] }) {
     setError(null);
     setData(null);
 
-    fetch(`http://127.0.0.1:8000/backtest/${namespace}?model=${model}`)
+    fetch(`http://127.0.0.1:8000/backtest/${namespace}?model=${model}&metric=${metric}`)
       .then(res => res.json())
       .then(d => {
         if (d.error) { setError(d.error); setLoading(false); return; }
@@ -63,7 +72,7 @@ function Backtest({ namespaces = [] }) {
         setLoading(false);
       })
       .catch(() => { setError('Failed to connect to backend.'); setLoading(false); });
-  }, [namespace, model]);
+  }, [namespace, model, metric]);
 
   const chartData = (data && data.train_data && data.comparison) ? [
     ...data.train_data.map(d => ({ day: d.day, actual: d.actual })),
@@ -114,6 +123,19 @@ function Backtest({ namespaces = [] }) {
         <div style={{ display: 'flex', gap: '8px' }}>
           <ToggleButton label="SARIMA" active={model === 'sarima'} onClick={() => setModel('sarima')} />
           <ToggleButton label="Prophet" active={model === 'prophet'} onClick={() => setModel('prophet')} />
+        </div>
+
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <ToggleButton
+            label="Cost"
+            active={metric === 'cost'}
+            onClick={() => setMetric('cost')}
+          />
+          <ToggleButton
+            label="Pod Count"
+            active={metric === 'podCount'}
+            onClick={() => setMetric('podCount')}
+          />
         </div>
       </div>
 

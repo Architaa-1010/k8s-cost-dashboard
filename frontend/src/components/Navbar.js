@@ -1,6 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-
-function Navbar({ namespaces, onReset }) {
+function Navbar({ namespaces, onReset, clusters, selectedCluster, onClusterChange, clusterLoading }) {
   const location = useLocation();
 
   const links = [
@@ -18,7 +17,7 @@ function Navbar({ namespaces, onReset }) {
       display: 'flex',
       alignItems: 'center',
       gap: '32px',
-      borderBottom: '1px solid #0f172a'
+      borderBottom: '1px solid #e2e8f0'
     }}>
       <span style={{
         fontWeight: '800', fontSize: '18px',
@@ -48,12 +47,41 @@ function Navbar({ namespaces, onReset }) {
       {/* Spacer */}
       <div style={{ flex: 1 }} />
 
+      {/* Cluster Selector */}
+      {clusters && clusters.length > 0 && (
+        <select
+          value={selectedCluster || ''}
+          onChange={e => onClusterChange(e.target.value || null)}
+          style={{
+            padding: '6px 12px',
+            backgroundColor: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '8px',
+            fontSize: '13px',
+            color: '#0f172a',
+            cursor: 'pointer',
+            outline: 'none'
+          }}
+        >
+          <option value="">All Clusters</option>
+          {clusters.map(c => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+      )}
+
+      {clusterLoading && (
+        <span style={{ fontSize: '12px', color: '#64748b' }}>
+          Switching cluster...
+        </span>
+      )}
+
       {/* Change Data Button */}
       <button
         onClick={onReset}
         style={{
           backgroundColor: 'transparent',
-          border: '1px solid #0f172a',
+          border: '1px solid #e2e8f0',
           color: '#64748b',
           padding: '6px 16px',
           borderRadius: '8px',
@@ -66,7 +94,7 @@ function Navbar({ namespaces, onReset }) {
           e.target.style.color = '#e11d48';
         }}
         onMouseOut={e => {
-          e.target.style.borderColor = '#0f172a';
+          e.target.style.borderColor = '#e2e8f0';
           e.target.style.color = '#64748b';
         }}
       >

@@ -23,6 +23,14 @@ function Forecast({ namespaces }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [selected, setSelected] = useState(namespaces?.[0] || '');
+
+  useEffect(() => {
+    if (namespaces && namespaces.length > 0) {
+      setSelected(namespaces[0]);
+      setData(null);
+    }
+  }, [namespaces]);
 
   useEffect(() => {
     if (!namespace) return;

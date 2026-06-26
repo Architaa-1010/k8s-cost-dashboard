@@ -32,7 +32,7 @@ function UploadScreen({ onUpload }) {
       });
       const data = await res.json();
       if (data.message) {
-        onUpload(data);
+        onUpload(data, 'file');
       } else {
         setError('Upload failed. Check your file format.');
       }
@@ -57,7 +57,7 @@ function UploadScreen({ onUpload }) {
       });
       const data = await res.json();
       if (data.message) {
-        onUpload(data);
+        onUpload(data, 'mongodb');
       } else {
         setError(data.error || 'Connection failed.');
       }
@@ -81,7 +81,7 @@ function UploadScreen({ onUpload }) {
       });
       const data = await res.json();
       if(data.message){
-        onUpload(data);
+        onUpload(data, 'api');
       } 
       else{
         setError(data.error || 'Connection failed.');
@@ -469,6 +469,26 @@ function App() {
   const [uploadInfo, setUploadInfo] = useState(null);
   const [checking, setChecking] = useState(true);
   const [mappingInfo, setMappingInfo] = useState(null);
+  const [selectedCluster, setSelectedCluster]= useState(null);
+  const [clusters, setClusters] = useState([]);
+  const [clusterLoading, setClusterLoading] = useState(false);
+
+  async function handleClusterChange(cluster) {
+    setClusterLoading(true);
+    setSelectedCluster(cluster);
+    try {
+      const res = await fetch('http://127.0.0.1:8000/select-cluster', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cluster })
+      });
+      const data = await res.json();
+      if (data.namespaces) {
+        setMappingInfo(prev => ({ ...prev, namespaces: data.namespaces }));
+      }
+    } catch (e) {}
+    setClusterLoading(false);
+  }
 
   useEffect(() => {
     fetch('http://127.0.0.1:8000/status')
@@ -477,6 +497,7 @@ function App() {
         if (data.has_data) {
           setUploadInfo(data);
           setMappingInfo(data);
+          loadClusters();
         }
         setChecking(false);
       })
@@ -489,6 +510,18 @@ function App() {
     } catch (e) {}
     setUploadInfo(null);
     setMappingInfo(null);
+    setSelectedCluster(null);
+    setClusters([]);
+  }
+
+  async function loadClusters() {
+    try {
+      const res = await fetch('http://127.0.0.1:8000/clusters');
+      const data = await res.json();
+      if (data.has_clusters) {
+        setClusters(data.clusters);
+      }
+    } catch (e) {}
   }
 
   if (checking) return (
@@ -501,29 +534,41 @@ function App() {
   );
 
   if (!uploadInfo) {
-    return <UploadScreen onUpload={info => {
-      setUploadInfo(info);
+    return <UploadScreen onUpload={(info, method) => {
+      setUploadInfo({...info, method});
       setMappingInfo(null);
     }} />;
   }
 
   if (!mappingInfo) {
+    if (uploadInfo.method === 'mongodb' || uploadInfo.method === 'api') {
+      setMappingInfo(uploadInfo);
+      loadClusters();
+      return null;
+    }
     return <FieldMappingScreen
       uploadInfo={uploadInfo}
-      onMapped={setMappingInfo}
+      onMapped={info => { setMappingInfo(info); loadClusters(); }}
       onBack={() => setUploadInfo(null)}
     />;
   }
 
   return (
     <BrowserRouter>
-      <Navbar namespaces={mappingInfo.namespaces} onReset={handleReset} />
+      <Navbar
+        namespaces={mappingInfo.namespaces}
+        onReset={handleReset}
+        clusters={clusters}
+        selectedCluster={selectedCluster}
+        onClusterChange={handleClusterChange}
+        clusterLoading={clusterLoading}
+      />
       <Routes>
-        <Route path="/" element={<Overview />} />
-        <Route path="/namespace" element={<NamespaceDive namespaces={mappingInfo.namespaces} />} />
-        <Route path="/forecast" element={<Forecast namespaces={mappingInfo.namespaces} />} />
-        <Route path="/budget" element={<BudgetAlerts namespaces={mappingInfo.namespaces} />} />
-        <Route path="/backtest" element={<Backtest namespaces={mappingInfo.namespaces} />} />
+        <Route path="/" element={<Overview key={selectedCluster} />} />
+        <Route path="/namespace" element={<NamespaceDive key={selectedCluster} namespaces={mappingInfo.namespaces} />} />
+        <Route path="/forecast" element={<Forecast key={selectedCluster} namespaces={mappingInfo.namespaces} />} />
+        <Route path="/budget" element={<BudgetAlerts key={selectedCluster} namespaces={mappingInfo.namespaces} />} />
+        <Route path="/backtest" element={<Backtest key={selectedCluster} namespaces={mappingInfo.namespaces} />} />
       </Routes>
     </BrowserRouter>
   );
