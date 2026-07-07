@@ -19,7 +19,7 @@ The application was designed to handle both uploaded datasets and large MongoDB 
 ### Dashboard Overview
 
 - Cluster-wide cost summary
-- Total infrastructure cost
+- Total infrastructure  xhow doies retreival augmented 
 - Daily average cost
 - Active namespaces
 - Cost trend visualization
